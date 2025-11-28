@@ -8,8 +8,12 @@
 - ✍️ 블로그 글 자동 작성
 - 📁 카테고리 설정
 - 🏷️ 태그 추가
-- 🔒 공개/비공개 설정
+- 🔒 공개/이웃공개/서로이웃공개/비공개 설정
+- 💬 댓글, 공감, 검색, 공유 옵션 설정
+- 📌 공지사항 등록 지원
+- 🔄 CDP (Chrome DevTools Protocol) 모드 지원 (권장)
 - 💻 명령줄 & 대화형 모드 지원
+- 🔁 발행 실패 시 자동 재시도
 
 ## 설치 방법
 
@@ -58,14 +62,27 @@ NAVER_PW=your_naver_password
 # 브라우저 설정 (chrome, edge, firefox)
 BROWSER_TYPE=chrome
 
-# 헤드리스 모드 (True/False)
+# 헤드리스 모드 (True/False) - 브라우저 창을 숨기려면 True
 HEADLESS=False
 
 # 블로그 설정
+# 블로그 ID (네이버 아이디와 다를 경우 입력, 비워두면 NAVER_ID 사용)
+BLOG_ID=
 BLOG_CATEGORY=일상
+
+# 글쓰기 모드 설정
+# selenium: 기존 Selenium 방식
+# cdp: Chrome DevTools Protocol 방식 (더 안정적, 권장)
+WRITER_MODE=cdp
 ```
 
 ## 사용 방법
+
+### 빠른 실행 (Linux/Mac)
+
+```bash
+./run.sh
+```
 
 ### 대화형 모드
 
@@ -73,7 +90,12 @@ BLOG_CATEGORY=일상
 python main.py
 ```
 
-실행하면 제목, 내용, 카테고리, 태그, 공개 여부를 순차적으로 입력할 수 있습니다.
+실행하면 제목, 내용, 카테고리, 태그, 공개 여부 및 발행 옵션을 순차적으로 입력할 수 있습니다.
+
+**대화형 모드 발행 설정 옵션:**
+- 공개 설정: 전체공개 / 이웃공개 / 서로이웃공개 / 비공개
+- 발행 설정: 댓글 허용, 공감 허용, 검색 허용, 블로그/카페 공유 (링크/본문), 외부 공유 허용
+- 공지사항 등록
 
 ### 명령줄 모드
 
@@ -89,6 +111,15 @@ python main.py --title "글 제목" --content "글 내용" --category "일상" -
 
 # 비공개로 발행
 python main.py --title "글 제목" --content "글 내용" --private
+
+# CDP 모드로 실행 (권장)
+python main.py --title "글 제목" --content "글 내용" --mode cdp
+
+# Selenium 모드로 실행
+python main.py --title "글 제목" --content "글 내용" --mode selenium
+
+# 재시도 횟수 설정
+python main.py --title "글 제목" --content "글 내용" --retries 3
 ```
 
 ### 명령줄 옵션
@@ -101,25 +132,42 @@ python main.py --title "글 제목" --content "글 내용" --private
 | `--category` | | 카테고리 이름 |
 | `--tags` | | 태그 목록 (공백으로 구분) |
 | `--private` | | 비공개로 발행 |
+| `--mode` | `-m` | 글쓰기 모드 (`selenium` 또는 `cdp`) |
+| `--retries` | `-r` | 발행 실패 시 최대 재시도 횟수 (기본값: 2) |
 
 ## 프로젝트 구조
 
 ```
 naver_blog_auto_write/
-├── main.py              # 메인 실행 파일
-├── requirements.txt     # 의존성 패키지
-├── .env.example         # 환경 변수 예시
-├── .env                 # 환경 변수 (git 제외)
+├── main.py                  # 메인 실행 파일
+├── requirements.txt         # 의존성 패키지
+├── .env.example             # 환경 변수 예시
+├── .env                     # 환경 변수 (git 제외)
 ├── .gitignore
 ├── README.md
-├── venv/                # 가상환경 (git 제외)
+├── run.sh                   # 실행 스크립트 (Linux/Mac)
+├── install_korean_fonts.sh  # 한글 폰트 설치 스크립트
+├── venv/                    # 가상환경 (git 제외)
+├── drivers/                 # 웹드라이버 디렉토리
 └── src/
-    ├── __init__.py      # 패키지 초기화
-    ├── config.py        # 설정 관리
-    ├── driver.py        # 웹드라이버 관리
-    ├── naver_login.py   # 네이버 로그인 모듈
-    └── blog_writer.py   # 블로그 글 작성 모듈
+    ├── __init__.py          # 패키지 초기화
+    ├── config.py            # 설정 관리
+    ├── driver.py            # 웹드라이버 관리
+    ├── naver_login.py       # 네이버 로그인 모듈
+    ├── blog_writer.py       # 블로그 글 작성 모듈 (Selenium 방식)
+    └── blog_writer_cdp.py   # 블로그 글 작성 모듈 (CDP 방식, 권장)
 ```
+
+## 글쓰기 모드
+
+### CDP 모드 (권장)
+- Chrome DevTools Protocol을 활용한 안정적인 페이지 조작
+- 네이버 에디터의 iframe 구조를 더 효과적으로 처리
+- `WRITER_MODE=cdp` 또는 `--mode cdp`로 사용
+
+### Selenium 모드
+- 기존 Selenium 방식의 글쓰기
+- `WRITER_MODE=selenium` 또는 `--mode selenium`으로 사용
 
 ## 주의사항
 
@@ -148,8 +196,24 @@ naver_blog_auto_write/
 
 ### 글 작성이 안 될 때
 
+- CDP 모드(`--mode cdp`)를 사용해보세요.
 - 네이버 에디터 UI가 변경되었을 수 있습니다.
 - 로그인이 정상적으로 되었는지 확인하세요.
+- `--retries` 옵션으로 재시도 횟수를 늘려보세요.
+
+### 한글이 깨질 때 (Linux)
+
+```bash
+./install_korean_fonts.sh
+```
+
+## 의존성
+
+- `selenium>=4.15.0` - 웹 브라우저 자동화
+- `webdriver-manager>=4.0.1` - 웹드라이버 자동 관리
+- `python-dotenv>=1.0.0` - 환경 변수 관리
+- `pyperclip>=1.8.2` - 클립보드 조작
+- `pyautogui>=0.9.54` - GUI 자동화
 
 ## 라이선스
 
