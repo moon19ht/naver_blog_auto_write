@@ -3,3 +3,4 @@ webdriver-manager>=4.0.1
 python-dotenv>=1.0.0
 pyperclip>=1.8.2
 pyautogui>=0.9.54
+distro>=1.8.0

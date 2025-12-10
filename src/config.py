@@ -17,6 +17,7 @@ class Config:
     blog_id: str
     blog_category: str
     writer_mode: str  # 'selenium' 또는 'cdp'
+    remote_mode: bool  # SSH 원격 접속 모드
     
     @classmethod
     def from_env(cls) -> 'Config':
@@ -30,6 +31,12 @@ class Config:
         blog_id = os.getenv('BLOG_ID', '').strip()
         blog_category = os.getenv('BLOG_CATEGORY', '일상')
         writer_mode = os.getenv('WRITER_MODE', 'cdp').lower()  # 'selenium' or 'cdp'
+        remote_mode = os.getenv('REMOTE_MODE', 'False').lower() == 'true'  # SSH 원격 모드
+        
+        # SSH 원격 모드일 경우 자동으로 최적 설정 적용
+        if remote_mode:
+            headless = True  # 원격에서는 헤드리스 필수
+            writer_mode = 'cdp'  # 클립보드 사용 불가하므로 CDP 모드 강제
         
         if not naver_id or not naver_pw:
             raise ValueError("NAVER_ID와 NAVER_PW를 .env 파일에 설정해주세요.")
@@ -45,7 +52,8 @@ class Config:
             headless=headless,
             blog_id=blog_id,
             blog_category=blog_category,
-            writer_mode=writer_mode
+            writer_mode=writer_mode,
+            remote_mode=remote_mode
         )
 
 

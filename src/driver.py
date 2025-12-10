@@ -115,15 +115,43 @@ class WebDriverManager:
         options.add_argument('--start-maximized')
         options.add_argument('--disable-gpu')
         
+        # GPU 및 그래픽 관련 오류 방지
+        options.add_argument('--disable-software-rasterizer')
+        options.add_argument('--disable-extensions')
+        options.add_argument('--disable-features=VizDisplayCompositor')
+        options.add_argument('--use-gl=swiftshader')
+        options.add_argument('--disable-accelerated-2d-canvas')
+        
         # User-Agent 설정
         options.add_argument('--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36')
         
         if self.config.headless:
             options.add_argument('--headless=new')
+            # 원격 모드(SSH)에서는 추가 안정성 옵션
+            if hasattr(self.config, 'remote_mode') and self.config.remote_mode:
+                print("[INFO] SSH 원격 모드 - 헤드리스 최적화 적용")
+                options.add_argument('--disable-setuid-sandbox')
+                options.add_argument('--single-process')
+                options.add_argument('--window-size=1920,1080')
+                options.add_argument('--disable-infobars')
         
         # 한글 글꼴 지원
         options.add_argument('--lang=ko-KR')
         options.add_argument('--font-render-hinting=none')  # 한글 폰트 렌더링
+        
+        # Wayland/X11 환경 감지 및 설정
+        session_type = os.environ.get('XDG_SESSION_TYPE', '')
+        if session_type == 'wayland':
+            print("[INFO] Wayland 세션 감지 - Ozone 플랫폼 설정")
+            options.add_argument('--ozone-platform=wayland')
+            # Wayland에서 클립보드 사용을 위한 추가 설정
+            options.add_argument('--enable-features=UseOzonePlatform')
+        elif not self.config.headless:
+            # X11 또는 기타 환경에서 DISPLAY 확인
+            display = os.environ.get('DISPLAY')
+            if not display:
+                print("[WARNING] DISPLAY 환경변수가 설정되지 않음. :0으로 설정합니다.")
+                os.environ['DISPLAY'] = ':0'
         
         # WSL 환경 설정
         if self.is_wsl:

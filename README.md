@@ -120,6 +120,9 @@ python main.py --title "글 제목" --content "글 내용" --mode selenium
 
 # 재시도 횟수 설정
 python main.py --title "글 제목" --content "글 내용" --retries 3
+
+# SSH 원격 모드로 실행 (헤드리스 + CDP 자동 활성화)
+python main.py --title "글 제목" --content "글 내용" --remote
 ```
 
 ### 명령줄 옵션
@@ -134,6 +137,7 @@ python main.py --title "글 제목" --content "글 내용" --retries 3
 | `--private` | | 비공개로 발행 |
 | `--mode` | `-m` | 글쓰기 모드 (`selenium` 또는 `cdp`) |
 | `--retries` | `-r` | 발행 실패 시 최대 재시도 횟수 (기본값: 2) |
+| `--remote` | | SSH 원격 접속 모드 (자동으로 헤드리스 + CDP 모드) |
 
 ## 프로젝트 구조
 
@@ -168,6 +172,24 @@ naver_blog_auto_write/
 ### Selenium 모드
 - 기존 Selenium 방식의 글쓰기
 - `WRITER_MODE=selenium` 또는 `--mode selenium`으로 사용
+
+### SSH 원격 모드 (Remote Mode)
+SSH로 서버에 원격 접속하여 사용할 때 권장하는 모드입니다.
+
+**특징:**
+- 자동으로 헤드리스 모드 활성화 (GUI 없는 환경)
+- CDP 모드 강제 적용 (클립보드 방식 사용 불가하므로)
+- 브라우저 창 크기 고정 (1920x1080)
+- 원격 환경 최적화 옵션 자동 적용
+
+**사용법:**
+```bash
+# 명령줄 옵션으로 사용
+python main.py --title "제목" --content "내용" --remote
+
+# 또는 .env 파일에서 설정
+REMOTE_MODE=True
+```
 
 ## 주의사항
 

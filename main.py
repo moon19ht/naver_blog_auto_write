@@ -83,6 +83,12 @@ def parse_arguments():
         help='발행 실패 시 최대 재시도 횟수 (기본값: 2)'
     )
     
+    parser.add_argument(
+        '--remote',
+        action='store_true',
+        help='SSH 원격 접속 모드 (자동으로 헤드리스 + CDP 모드 활성화)'
+    )
+    
     return parser.parse_args()
 
 
@@ -156,37 +162,42 @@ def get_content_interactive() -> tuple:
     print("네이버 블로그 자동 글쓰기")
     print("=" * 50 + "\n")
     
-    title = input("제목을 입력하세요: ").strip()
-    if not title:
-        print("[ERROR] 제목을 입력해야 합니다.")
-        sys.exit(1)
+    # 제목 입력 (공백만 입력된 경우 재입력 요청)
+    while True:
+        title = input("제목을 입력하세요: ").strip()
+        if title:
+            break
+        print("[WARNING] 제목이 비어있습니다. 다시 입력해주세요.")
     
     print("\n내용을 입력하세요 (입력 완료 시 빈 줄에서 'END' 입력):")
     print("-" * 30)
     
-    lines = []
+    # 내용 입력 (공백만 입력된 경우 재입력 요청)
     while True:
-        try:
-            line = input()
-            if line.strip().upper() == 'END':
+        lines = []
+        while True:
+            try:
+                line = input()
+                if line.strip().upper() == 'END':
+                    break
+                lines.append(line)
+            except EOFError:
                 break
-            lines.append(line)
-        except EOFError:
+        
+        content = '\n'.join(lines).strip()
+        
+        if content:
             break
+        print("[WARNING] 내용이 비어있습니다. 다시 입력해주세요.")
+        print("-" * 30)
     
-    content = '\n'.join(lines)
-    
-    if not content:
-        print("[ERROR] 내용을 입력해야 합니다.")
-        sys.exit(1)
-    
-    # 카테고리 입력 (선택)
+    # 카테고리 입력 (선택) - 공백만 있으면 None 처리
     category = input("\n카테고리를 입력하세요 (Enter로 건너뛰기): ").strip()
     category = category if category else None
     
-    # 태그 입력 (띄어쓰기로 구분)
+    # 태그 입력 (띄어쓰기로 구분) - 공백만 있으면 None 처리
     tags_input = input("태그를 입력하세요 (띄어쓰기로 구분, Enter로 건너뛰기): ").strip()
-    tags = tags_input.split() if tags_input else None
+    tags = [tag.strip() for tag in tags_input.split() if tag.strip()] if tags_input else None
     
     # 발행 설정 옵션
     publish_settings = get_publish_settings_interactive()
@@ -201,20 +212,31 @@ def main():
     # 내용 결정
     if args.title and (args.content or args.content_file):
         # 명령줄 모드
-        title = args.title
+        title = args.title.strip() if args.title else ""
+        
+        if not title:
+            print("[ERROR] 제목이 비어있습니다.")
+            sys.exit(1)
         
         if args.content_file:
             try:
                 with open(args.content_file, 'r', encoding='utf-8') as f:
-                    content = f.read()
+                    content = f.read().strip()
             except FileNotFoundError:
                 print(f"[ERROR] 파일을 찾을 수 없습니다: {args.content_file}")
                 sys.exit(1)
         else:
-            content = args.content
+            content = args.content.strip() if args.content else ""
         
-        category = args.category
-        tags = args.tags
+        if not content:
+            print("[ERROR] 내용이 비어있습니다.")
+            sys.exit(1)
+        
+        category = args.category.strip() if args.category else None
+        category = category if category else None  # 공백만 있으면 None
+        
+        tags = [tag.strip() for tag in args.tags if tag.strip()] if args.tags else None
+        tags = tags if tags else None  # 빈 리스트면 None
         # 명령줄 모드는 기본 설정 사용
         publish_settings = {
             'visibility': 'private' if args.private else 'public',
@@ -237,11 +259,24 @@ def main():
         print("[INFO] .env.example 파일을 .env로 복사하고 설정을 입력해주세요.")
         sys.exit(1)
     
-    # 글쓰기 모드 결정 (명령줄 > 환경변수)
-    writer_mode = args.mode if args.mode else config.writer_mode
+    # --remote 옵션 처리: SSH 원격 모드 강제 적용
+    if args.remote:
+        config.remote_mode = True
+        config.headless = True
+        config.writer_mode = 'cdp'
+        print("[INFO] SSH 원격 모드 활성화 (헤드리스 + CDP 모드)")
+    
+    # 글쓰기 모드 결정 (명령줄 > 원격모드 > 환경변수)
+    if args.mode:
+        writer_mode = args.mode
+    elif config.remote_mode:
+        writer_mode = 'cdp'  # 원격 모드에서는 CDP 강제
+    else:
+        writer_mode = config.writer_mode
     
     print(f"\n[INFO] 브라우저: {config.browser_type}")
     print(f"[INFO] 헤드리스 모드: {config.headless}")
+    print(f"[INFO] 원격 모드 (SSH): {config.remote_mode}")
     print(f"[INFO] 글쓰기 모드: {writer_mode.upper()}")
     
     # 웹드라이버 시작
