@@ -1,0 +1,29 @@
+[
+  {
+    "sns_id": "example@naver.com",
+    "sns_pw": "",
+    "sns_upload_cont": {
+      "blog_title": "Sample Blog Post Title",
+      "blog_title_img": "https://example.com/image1.jpg",
+      "blog_top_word": "Welcome to my blog post!",
+      "blog_top_word2": "This is an introductory paragraph.",
+      "blog_title_img2": "",
+      "blog_basic": "This is the main content of the blog post. It can contain detailed information about the topic.",
+      "blog_feature": "Key features and highlights go here.",
+      "blog_title_img3": "",
+      "site_title1": "Section 1",
+      "site_cont1": "Content for the first section.",
+      "site_img1": "",
+      "site_quote": "An inspiring quote to include in the post.",
+      "site_title2": "Section 2",
+      "site_cont2": "Content for the second section.",
+      "site_img2": "",
+      "site_addr": "Seoul, South Korea",
+      "site_addr2": "Gangnam District",
+      "site_cll_img": "",
+      "site_time": "Mon-Fri 9:00-18:00",
+      "site_bus": "Business information and contact details.",
+      "site_tag": "blog,naver,automation,sample"
+    }
+  }
+]
