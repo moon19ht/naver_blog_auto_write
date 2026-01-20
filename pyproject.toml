@@ -1,0 +1,61 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nblog"
+version = "2.0.0"
+description = "Naver Blog Automation CLI - Batch posting tool"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.8"
+authors = [
+    {name = "moon19ht"}
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
+]
+keywords = ["naver", "blog", "automation", "cli", "batch-posting"]
+
+dependencies = [
+    "selenium>=4.15.0",
+    "webdriver-manager>=4.0.1",
+    "python-dotenv>=1.0.0",
+    "pyperclip>=1.8.2",
+    "pyautogui>=0.9.54",
+    "distro>=1.8.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+]
+
+[project.scripts]
+nblog = "cli.main:main"
+
+[project.urls]
+Homepage = "https://github.com/moon19ht/naver_blog_auto_write"
+Repository = "https://github.com/moon19ht/naver_blog_auto_write.git"
+Issues = "https://github.com/moon19ht/naver_blog_auto_write/issues"
+
+[tool.setuptools.packages.find]
+include = ["cli*", "core*", "adapters*", "automation*", "src*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"
