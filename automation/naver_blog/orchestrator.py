@@ -28,6 +28,28 @@ class PostingConfig:
     writer_mode: str = 'cdp'  # 'cdp' or 'selenium'
 
 
+@dataclass
+class LoginConfig:
+    """
+    Configuration for Naver login.
+
+    This class provides a Config-like interface compatible with NaverLogin.
+    """
+    naver_id: str
+    naver_pw: str
+    headless: bool = True
+
+
+@dataclass
+class WriterConfig:
+    """
+    Configuration for blog writer.
+
+    This class provides a Config-like interface compatible with NaverBlogWriter.
+    """
+    blog_id: str
+
+
 class BatchPostingOrchestrator:
     """
     Orchestrates batch posting to Naver Blog.
@@ -219,17 +241,12 @@ class BatchPostingOrchestrator:
         try:
             # Import here to avoid circular imports
             from src.naver_login import NaverLogin
-            from src.config import Config
 
-            # Create a minimal config for login
-            # We create a Config-like object with required attributes
-            class LoginConfig:
-                def __init__(self, naver_id, naver_pw, headless):
-                    self.naver_id = naver_id
-                    self.naver_pw = naver_pw
-                    self.headless = headless
-
-            config = LoginConfig(creds.sns_id, creds.sns_pw, self.config.headless)
+            config = LoginConfig(
+                naver_id=creds.sns_id,
+                naver_pw=creds.sns_pw,
+                headless=self.config.headless
+            )
             login = NaverLogin(driver, config)
 
             return login.login()
@@ -256,14 +273,9 @@ class BatchPostingOrchestrator:
             else:
                 from src.blog_writer import NaverBlogWriter as Writer
 
-            # Create config-like object for writer
-            class WriterConfig:
-                def __init__(self, blog_id):
-                    self.blog_id = blog_id
-
             # Extract blog ID from email (username part)
             blog_id = creds.sns_id.split('@')[0]
-            config = WriterConfig(blog_id)
+            config = WriterConfig(blog_id=blog_id)
 
             writer = Writer(driver, config)
 

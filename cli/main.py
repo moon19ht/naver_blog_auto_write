@@ -133,17 +133,12 @@ Examples:
         help='Path to external secrets JSON file'
     )
     post_parser.add_argument(
-        '--headless',
-        action='store_true',
-        default=True,
-        help='Run browser in headless mode (default: True)'
-    )
-    post_parser.add_argument(
         '--no-headless',
         action='store_false',
         dest='headless',
-        help='Run browser with visible window'
+        help='Run browser with visible window (default: headless mode)'
     )
+    post_parser.set_defaults(headless=True)
     post_parser.add_argument(
         '--retries',
         type=int,

@@ -1,8 +1,8 @@
 """Unit tests for CLI module."""
+import argparse
 import json
 import pytest
 import sys
-import tempfile
 from pathlib import Path
 
 # Add project root to path
@@ -107,7 +107,7 @@ class TestCLIParser:
 class TestCLIIntegration:
     """Integration tests for CLI commands."""
 
-    def test_validate_valid_file(self):
+    def test_validate_valid_file(self, tmp_path):
         """Test validate command with valid file."""
         data = [{
             'sns_id': 'test@naver.com',
@@ -117,38 +117,28 @@ class TestCLIIntegration:
             }
         }]
 
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
-            json.dump(data, f)
-            temp_path = f.name
+        temp_file = tmp_path / "valid_input.json"
+        temp_file.write_text(json.dumps(data), encoding='utf-8')
 
-        try:
-            from cli.main import cmd_validate
-            import argparse
-            args = argparse.Namespace(input_file=temp_path, quiet=False)
-            result = cmd_validate(args)
-            assert result == 0
-        finally:
-            Path(temp_path).unlink()
+        from cli.main import cmd_validate
+        args = argparse.Namespace(input_file=str(temp_file), quiet=False)
+        result = cmd_validate(args)
+        assert result == 0
 
-    def test_validate_invalid_file(self):
+    def test_validate_invalid_file(self, tmp_path):
         """Test validate command with invalid file."""
         data = [{
             'sns_id': 'test@naver.com',
             'sns_upload_cont': {}  # Missing blog_title
         }]
 
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
-            json.dump(data, f)
-            temp_path = f.name
+        temp_file = tmp_path / "invalid_input.json"
+        temp_file.write_text(json.dumps(data), encoding='utf-8')
 
-        try:
-            from cli.main import cmd_validate
-            import argparse
-            args = argparse.Namespace(input_file=temp_path, quiet=False)
-            result = cmd_validate(args)
-            assert result == 1
-        finally:
-            Path(temp_path).unlink()
+        from cli.main import cmd_validate
+        args = argparse.Namespace(input_file=str(temp_file), quiet=False)
+        result = cmd_validate(args)
+        assert result == 1
 
 
 if __name__ == '__main__':

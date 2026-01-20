@@ -77,11 +77,12 @@ class CredentialManager:
         except Exception as e:
             print(f"[WARNING] Failed to load secrets file: {e}")
 
-    def _sanitize_email(self, email: str) -> str:
+    @staticmethod
+    def _sanitize_email(email: str) -> str:
         """
         Sanitize email for environment variable name.
 
-        example@naver.com -> example_at_naver_com
+        example@naver.com -> EXAMPLE_AT_NAVER_COM
         """
         sanitized = email.replace('@', '_at_').replace('.', '_')
         # Remove any characters not suitable for env var names
@@ -173,12 +174,10 @@ class CredentialManager:
             return "(empty)"
         return "*" * min(len(password), 8)
 
-    @staticmethod
-    def get_env_var_name(email: str) -> str:
+    @classmethod
+    def get_env_var_name(cls, email: str) -> str:
         """Get the environment variable name for an email."""
-        sanitized = email.replace('@', '_at_').replace('.', '_')
-        sanitized = re.sub(r'[^a-zA-Z0-9_]', '_', sanitized)
-        return f"NBLOG_PW_{sanitized.upper()}"
+        return f"{cls.ENV_PREFIX}{cls._sanitize_email(email)}"
 
     def print_credential_sources(self, entries: List[BlogPostEntry]):
         """Print credential resolution status (for debugging/doctor command)."""
