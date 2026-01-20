@@ -99,9 +99,6 @@ class JSONValidator:
     REQUIRED_ROOT_FIELDS = ['sns_id', 'sns_upload_cont']
     REQUIRED_CONTENT_FIELDS = ['blog_title']
 
-    def __init__(self):
-        pass
-
     def validate_file(self, file_path: str) -> ValidationResult:
         """
         Validate a JSON file.

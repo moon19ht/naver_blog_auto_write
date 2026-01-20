@@ -2,7 +2,6 @@
 import json
 import pytest
 import sys
-import tempfile
 from pathlib import Path
 
 # Add project root to path
@@ -175,20 +174,16 @@ class TestValidateFile:
         assert not result.valid
         assert any('not found' in e.message.lower() for e in result.errors)
 
-    def test_validate_invalid_json(self):
+    def test_validate_invalid_json(self, tmp_path):
         """Test validation with invalid JSON."""
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
-            f.write('{invalid json')
-            temp_path = f.name
+        temp_file = tmp_path / "invalid.json"
+        temp_file.write_text('{invalid json', encoding='utf-8')
 
-        try:
-            result = validate_json_file(temp_path)
-            assert not result.valid
-            assert any('syntax' in e.message.lower() for e in result.errors)
-        finally:
-            Path(temp_path).unlink()
+        result = validate_json_file(str(temp_file))
+        assert not result.valid
+        assert any('syntax' in e.message.lower() for e in result.errors)
 
-    def test_validate_valid_file(self):
+    def test_validate_valid_file(self, tmp_path):
         """Test validation with valid JSON file."""
         data = [{
             'sns_id': 'test@naver.com',
@@ -198,16 +193,12 @@ class TestValidateFile:
             }
         }]
 
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
-            json.dump(data, f)
-            temp_path = f.name
+        temp_file = tmp_path / "valid.json"
+        temp_file.write_text(json.dumps(data), encoding='utf-8')
 
-        try:
-            result = validate_json_file(temp_path)
-            assert result.valid
-            assert len(result.entries) == 1
-        finally:
-            Path(temp_path).unlink()
+        result = validate_json_file(str(temp_file))
+        assert result.valid
+        assert len(result.entries) == 1
 
 
 class TestValidationResult:

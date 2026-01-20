@@ -16,9 +16,6 @@ class ContentRenderer:
     into a coherent blog post content.
     """
 
-    def __init__(self):
-        pass
-
     def render_html(self, content: BlogContent) -> str:
         """
         Render content as HTML.
